@@ -16,19 +16,13 @@ type LokiPayload struct {
 }
 
 type LokiStreams struct {
-	Stream LokiStream `json:"stream"`
-	Values [][]string `json:"values"`
-}
-
-type LokiStream struct {
-	Job    string `json:"job"`
-	Source string `json:"source"`
+	Stream map[string]string `json:"stream"`
+	Values [][]string        `json:"values"`
 }
 
 type LogrusLokiConfig struct {
 	Url       string
-	Source    string
-	Job       string
+	Labels    map[string]string
 	Formatter logrus.Formatter
 }
 
@@ -64,10 +58,7 @@ func (hook *LogrusLokiHook) PushToLoki(log []byte) (err error) {
 	payload := LokiPayload{
 		Streams: []LokiStreams{
 			{
-				Stream: LokiStream{
-					Job:    hook.Config.Job,
-					Source: hook.Config.Source,
-				},
+				Stream: hook.Config.Labels,
 				Values: [][]string{{strconv.FormatInt(time.Now().UnixNano(), 10), string(log)}},
 			},
 		},

@@ -9,9 +9,11 @@ var log = logrus.New()
 
 func init() {
 	lokiHook, err := logruslokihook.NewLogrusLoki(logruslokihook.LogrusLokiConfig{
-		Url:    "http://172.31.24.210:3100/loki/api/v1/push",
-		Job:    "someJob",
-		Source: "local abay",
+		Url: "http://172.31.24.210:3100/loki/api/v1/push",
+		Labels: map[string]string{
+			"job":    "some_job",
+			"source": "some_source",
+		},
 		Formatter: &logrus.JSONFormatter{
 			TimestampFormat: "2006-01-02T15:04:05.999999999Z07:00",
 		},
