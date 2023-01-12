@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -46,20 +47,17 @@ func (hook *LogrusLokiHook) Fire(entry *logrus.Entry) (err error) {
 		return err
 	}
 
-	err = hook.PushToLoki(b)
-	if err != nil {
-		return
-	}
+	go hook.Push(b)
 
-	return nil
+	return
 }
 
-func (hook *LogrusLokiHook) PushToLoki(log []byte) (err error) {
+func (hook *LogrusLokiHook) Push(b []byte) {
 	payload := LokiPayload{
 		Streams: []LokiStreams{
 			{
 				Stream: hook.Config.Labels,
-				Values: [][]string{{strconv.FormatInt(time.Now().UnixNano(), 10), string(log)}},
+				Values: [][]string{{strconv.FormatInt(time.Now().UnixNano(), 10), string(b)}},
 			},
 		},
 	}
@@ -71,13 +69,13 @@ func (hook *LogrusLokiHook) PushToLoki(log []byte) (err error) {
 	c := &http.Client{}
 	res, err := c.Do(req)
 	if err != nil {
-		return err
+		log.Println(err)
+		return
 	}
 
 	_, err = ioutil.ReadAll(res.Body)
 	if err != nil {
+		log.Println(err)
 		return
 	}
-
-	return
 }
